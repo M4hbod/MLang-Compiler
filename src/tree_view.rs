@@ -102,25 +102,25 @@ impl TreeNode {
 
 pub fn render_tree(ui: &mut egui::Ui, ast: &ASTNode, max_height: f32) {
     let mut tree = TreeNode::from_ast(ast);
-    
+
     // Calculate the tree width
     let tree_width = tree.calculate_width();
-    
+
     // Layout the tree starting from origin
     tree.layout(tree_width / 2.0, NODE_HEIGHT / 2.0);
-    
+
     // Get bounds
     let bounds = tree.get_bounds();
-    
+
     // Add generous padding
     let padding = 100.0;
     let total_width = bounds.width() + padding * 2.0;
     let total_height = bounds.height() + padding * 2.0;
-    
+
     // Calculate offset to center the tree
     let offset_x = padding - bounds.min.x;
     let offset_y = padding - bounds.min.y;
-    
+
     // Use a Frame to contain the scroll area
     egui::Frame::default()
         .fill(egui::Color32::from_rgb(30, 30, 35))
@@ -132,19 +132,25 @@ pub fn render_tree(ui: &mut egui::Ui, ast: &ASTNode, max_height: f32) {
                 .show(ui, |ui| {
                     // Create a child UI with the exact size we need
                     let desired_size = egui::vec2(total_width, total_height);
-                    
-                    let (rect, response) = ui.allocate_exact_size(desired_size, egui::Sense::hover());
-                    
+
+                    let (rect, response) =
+                        ui.allocate_exact_size(desired_size, egui::Sense::hover());
+
                     if ui.is_rect_visible(rect) {
                         let painter = ui.painter();
-                        
+
                         // Draw background
                         painter.rect_filled(rect, 0.0, egui::Color32::from_rgb(30, 30, 35));
-                        
+
                         // Draw the tree with offset
-                        draw_tree_with_offset(&tree, painter, rect.min.x + offset_x, rect.min.y + offset_y);
+                        draw_tree_with_offset(
+                            &tree,
+                            painter,
+                            rect.min.x + offset_x,
+                            rect.min.y + offset_y,
+                        );
                     }
-                    
+
                     response
                 });
         });
@@ -154,28 +160,25 @@ fn draw_tree_with_offset(node: &TreeNode, painter: &egui::Painter, offset_x: f32
     // Draw lines to children
     let node_center = egui::pos2(
         node.pos.x + offset_x,
-        node.pos.y + offset_y + node.size.y / 2.0
+        node.pos.y + offset_y + node.size.y / 2.0,
     );
-    
+
     for child in &node.children {
         let child_top = egui::pos2(
             child.pos.x + offset_x,
-            child.pos.y + offset_y - child.size.y / 2.0
+            child.pos.y + offset_y - child.size.y / 2.0,
         );
-        painter.line_segment(
-            [node_center, child_top],
-            egui::Stroke::new(3.0, LINE_COLOR),
-        );
+        painter.line_segment([node_center, child_top], egui::Stroke::new(3.0, LINE_COLOR));
     }
 
     // Draw node box
     let node_rect = egui::Rect::from_center_size(
         egui::pos2(node.pos.x + offset_x, node.pos.y + offset_y),
-        node.size
+        node.size,
     );
-    
+
     painter.rect_filled(node_rect, 5.0, node.color);
-    
+
     // Draw outline with 4 lines
     let stroke = egui::Stroke::new(2.0, egui::Color32::WHITE);
     painter.line_segment([node_rect.left_top(), node_rect.right_top()], stroke);

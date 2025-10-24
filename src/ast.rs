@@ -53,6 +53,7 @@ impl ASTNode {
                     '*' => l * r,
                     '/' => l / r,
                     '^' => l.powf(r),
+                    '=' => r, // For assignment, return the right-hand side value
                     _ => 0.0,
                 }
             }
