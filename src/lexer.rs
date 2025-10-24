@@ -115,10 +115,6 @@ impl Lexer {
                 self.advance();
                 Token::RParen
             }
-            '√' => {
-                self.advance();
-                Token::Sqrt
-            }
             '=' => {
                 self.advance();
                 Token::Assign
@@ -126,6 +122,12 @@ impl Lexer {
             ch if ch.is_numeric() => Token::Number(self.read_number()?),
             ch if ch.is_alphabetic() || ch == '_' => {
                 let name = self.read_identifier();
+
+                // Check if it's the sqrt keyword
+                if name.to_lowercase() == "sqrt" {
+                    return Ok(Some(Token::Sqrt));
+                }
+
                 let idx = self.get_identifier_index(&name);
                 Token::Identifier(name, idx)
             }

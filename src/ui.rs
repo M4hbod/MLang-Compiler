@@ -85,7 +85,7 @@ impl ExpressionParserApp {
 
             let examples = [
                 "A = B + C",
-                "√(13-(6-0)^2) - 10",
+                "sqrt(13-(6-0)^2) - 10",
                 "a + b * c",
                 "x^2 + 2*x + 1",
                 "result = alpha * beta",
@@ -251,7 +251,7 @@ impl ExpressionParserApp {
             }
             ASTNode::UnaryOp { op, operand } => {
                 let op_name = match op.as_str() {
-                    "√" => "Square Root",
+                    "sqrt" => "Square Root",
                     _ => "Unary Operation",
                 };
 
@@ -335,7 +335,7 @@ impl ExpressionParserApp {
             ui.label("* : Multiplication");
             ui.label("/ : Division");
             ui.label("^ : Power");
-            ui.label("√ : Square Root");
+            ui.label("sqrt() : Square Root");
             ui.label("a-z, A-Z : Identifiers");
             ui.label("( ) : Parentheses");
         });

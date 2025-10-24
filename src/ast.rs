@@ -59,7 +59,7 @@ impl ASTNode {
             ASTNode::UnaryOp { op, operand } => {
                 let val = operand.evaluate();
                 match op.as_str() {
-                    "√" => val.sqrt(),
+                    "sqrt" => val.sqrt(),
                     _ => val,
                 }
             }

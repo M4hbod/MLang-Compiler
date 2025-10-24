@@ -111,7 +111,7 @@ impl Parser {
             self.advance()?;
             let operand = self.parse_primary()?;
             return Ok(ASTNode::UnaryOp {
-                op: "√".to_string(),
+                op: "sqrt".to_string(),
                 operand: Box::new(operand),
             });
         }
