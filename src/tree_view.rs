@@ -33,10 +33,10 @@ impl TreeNode {
                 color: NUMBER_COLOR,
                 children: vec![],
             },
-            ASTNode::Identifier(name, _) => TreeNode {
+            ASTNode::Identifier(_name, idx) => TreeNode {
                 pos: egui::Pos2::ZERO,
                 size: egui::vec2(NODE_WIDTH, NODE_HEIGHT),
-                label: name.clone(),
+                label: format!("id{}", idx),
                 color: VARIABLE_COLOR,
                 children: vec![],
             },
