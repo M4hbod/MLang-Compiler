@@ -110,9 +110,11 @@ impl Parser {
         if matches!(self.peek(), Some(Token::Sqrt)) {
             self.advance()?;
             let operand = self.parse_primary()?;
-            return Ok(ASTNode::UnaryOp {
-                op: "sqrt".to_string(),
-                operand: Box::new(operand),
+            // Transform sqrt(x) into x^0.5
+            return Ok(ASTNode::BinaryOp {
+                op: '^',
+                left: Box::new(operand),
+                right: Box::new(ASTNode::Number(0.5)),
             });
         }
         self.parse_primary()

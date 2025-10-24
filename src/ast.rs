@@ -60,37 +60,10 @@ impl ASTNode {
             ASTNode::UnaryOp { op, operand } => {
                 let val = operand.evaluate();
                 match op.as_str() {
-                    "sqrt" => val.sqrt(),
+                    "sqrt" => val.powf(0.5),
                     _ => val,
                 }
             }
         }
-    }
-
-    pub fn to_tree_lines(&self, prefix: &str, is_last: bool) -> Vec<String> {
-        let mut lines = Vec::new();
-        let connector = if is_last { "└─ " } else { "├─ " };
-
-        match self {
-            ASTNode::Number(n) => {
-                lines.push(format!("{}{}{}", prefix, connector, n));
-            }
-            ASTNode::Identifier(_name, idx) => {
-                lines.push(format!("{}{}id{}", prefix, connector, idx));
-            }
-            ASTNode::BinaryOp { op, left, right } => {
-                lines.push(format!("{}{}{}", prefix, connector, op));
-                let new_prefix = format!("{}{}   ", prefix, if is_last { " " } else { "│" });
-                lines.extend(left.to_tree_lines(&new_prefix, false));
-                lines.extend(right.to_tree_lines(&new_prefix, true));
-            }
-            ASTNode::UnaryOp { op, operand } => {
-                lines.push(format!("{}{}{}", prefix, connector, op));
-                let new_prefix = format!("{}{}   ", prefix, if is_last { " " } else { "│" });
-                lines.extend(operand.to_tree_lines(&new_prefix, true));
-            }
-        }
-
-        lines
     }
 }

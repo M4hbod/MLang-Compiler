@@ -12,12 +12,6 @@ pub const TOKEN_TEXT_COLOR: egui::Color32 = egui::Color32::from_rgb(0, 60, 150);
 pub const IDENTIFIER_COLOR: egui::Color32 = egui::Color32::from_rgb(0, 100, 200);
 pub const SUCCESS_COLOR: egui::Color32 = egui::Color32::from_rgb(0, 150, 0);
 
-// AST Colors
-const OPERATOR_COLOR: egui::Color32 = egui::Color32::from_rgb(220, 50, 50);
-const NUMBER_COLOR: egui::Color32 = egui::Color32::from_rgb(50, 150, 220);
-const VARIABLE_COLOR: egui::Color32 = egui::Color32::from_rgb(150, 100, 200);
-const FUNCTION_COLOR: egui::Color32 = egui::Color32::from_rgb(220, 140, 50);
-
 const DEFAULT_EXPRESSION: &str = "A = B + C";
 
 pub struct ExpressionParserApp {
