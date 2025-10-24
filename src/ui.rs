@@ -224,18 +224,22 @@ impl ExpressionParserApp {
 impl eframe::App for ExpressionParserApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            self.render_header(ui);
-            self.render_input_section(ui);
-            self.render_examples(ui);
-            self.render_error(ui);
+            egui::ScrollArea::vertical()
+                .id_salt("main_scroll")
+                .show(ui, |ui| {
+                    self.render_header(ui);
+                    self.render_input_section(ui);
+                    self.render_examples(ui);
+                    self.render_error(ui);
 
-            if let Some(result) = &self.parse_result {
-                self.render_results(ui, result);
-            }
+                    if let Some(result) = &self.parse_result {
+                        self.render_results(ui, result);
+                    }
 
-            ui.add_space(10.0);
-            ui.separator();
-            self.render_legend(ui);
+                    ui.add_space(10.0);
+                    ui.separator();
+                    self.render_legend(ui);
+                });
         });
     }
 }
