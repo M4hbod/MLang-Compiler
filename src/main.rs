@@ -3,6 +3,7 @@ mod error;
 mod lexer;
 mod parser;
 mod token;
+mod tree_view;
 mod ui;
 
 use eframe::egui;
