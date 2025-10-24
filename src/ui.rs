@@ -50,7 +50,7 @@ impl ExpressionParserApp {
     }
 
     fn render_header(&self, ui: &mut egui::Ui) {
-        ui.heading("🔬 Mathematical Expression Parser");
+        ui.heading("Mathematical Expression Parser");
         ui.label("Compiler Design - Lexical & Syntactic Analysis");
         ui.add_space(10.0);
         ui.separator();
@@ -105,7 +105,7 @@ impl ExpressionParserApp {
 
     fn render_identifier_table(&self, ui: &mut egui::Ui, table: &[(String, usize)]) {
         ui.group(|ui| {
-            ui.heading("🔤 Identifier Table");
+            ui.heading("Identifier Table");
             ui.add_space(5.0);
 
             egui::Grid::new("id_table").striped(true).show(ui, |ui| {
@@ -130,7 +130,7 @@ impl ExpressionParserApp {
 
     fn render_tokens(&self, ui: &mut egui::Ui, tokens: &[Token]) {
         ui.group(|ui| {
-            ui.heading("📋 Lexical Analysis (Tokens)");
+            ui.heading("Lexical Analysis (Tokens)");
             ui.add_space(5.0);
 
             egui::ScrollArea::vertical()
@@ -155,7 +155,7 @@ impl ExpressionParserApp {
 
     fn render_ast(&self, ui: &mut egui::Ui, ast: &ASTNode) {
         ui.group(|ui| {
-            ui.heading("🌳 Abstract Syntax Tree");
+            ui.heading("Abstract Syntax Tree");
             ui.add_space(5.0);
 
             tree_view::render_tree(ui, ast, AST_SCROLL_HEIGHT);
@@ -166,7 +166,7 @@ impl ExpressionParserApp {
 
     fn render_result(&self, ui: &mut egui::Ui, ast: &ASTNode) {
         ui.group(|ui| {
-            ui.heading("📊 Evaluation Result");
+            ui.heading("Evaluation Result");
             ui.add_space(5.0);
 
             if ast.has_variables() {
