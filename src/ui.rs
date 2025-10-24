@@ -5,11 +5,17 @@ use eframe::egui;
 
 // UI Constants
 pub const TOKENS_SCROLL_HEIGHT: f32 = 150.0;
-pub const AST_SCROLL_HEIGHT: f32 = 300.0;
+pub const AST_SCROLL_HEIGHT: f32 = 400.0;
 pub const TOKEN_BG_COLOR: egui::Color32 = egui::Color32::from_rgb(220, 230, 255);
 pub const TOKEN_TEXT_COLOR: egui::Color32 = egui::Color32::from_rgb(0, 60, 150);
 pub const IDENTIFIER_COLOR: egui::Color32 = egui::Color32::from_rgb(0, 100, 200);
 pub const SUCCESS_COLOR: egui::Color32 = egui::Color32::from_rgb(0, 150, 0);
+
+// AST Colors
+const OPERATOR_COLOR: egui::Color32 = egui::Color32::from_rgb(220, 50, 50);
+const NUMBER_COLOR: egui::Color32 = egui::Color32::from_rgb(50, 150, 220);
+const VARIABLE_COLOR: egui::Color32 = egui::Color32::from_rgb(150, 100, 200);
+const FUNCTION_COLOR: egui::Color32 = egui::Color32::from_rgb(220, 140, 50);
 
 const DEFAULT_EXPRESSION: &str = "A = B + C";
 
@@ -152,20 +158,146 @@ impl ExpressionParserApp {
         ui.add_space(10.0);
     }
 
+    #[allow(clippy::only_used_in_recursion)]
+    fn render_ast_node(
+        &self,
+        ui: &mut egui::Ui,
+        node: &ASTNode,
+        id_prefix: &str,
+        counter: &mut usize,
+    ) {
+        match node {
+            ASTNode::Number(n) => {
+                ui.horizontal(|ui| {
+                    ui.label("🔢");
+                    ui.label(
+                        egui::RichText::new(format!("{}", n))
+                            .color(NUMBER_COLOR)
+                            .strong()
+                            .size(16.0),
+                    );
+                    ui.label(
+                        egui::RichText::new("(number)")
+                            .italics()
+                            .color(egui::Color32::GRAY)
+                            .size(12.0),
+                    );
+                });
+            }
+            ASTNode::Identifier(name, idx) => {
+                ui.horizontal(|ui| {
+                    ui.label("🔤");
+                    ui.label(
+                        egui::RichText::new(name)
+                            .color(VARIABLE_COLOR)
+                            .strong()
+                            .size(16.0),
+                    );
+                    ui.label(
+                        egui::RichText::new(format!("(id{})", idx))
+                            .italics()
+                            .color(egui::Color32::GRAY)
+                            .size(12.0),
+                    );
+                });
+            }
+            ASTNode::BinaryOp { op, left, right } => {
+                let op_name = match op {
+                    '=' => "Assignment",
+                    '+' => "Addition",
+                    '-' => "Subtraction",
+                    '*' => "Multiplication",
+                    '/' => "Division",
+                    '^' => "Power",
+                    _ => "Operation",
+                };
+
+                *counter += 1;
+                let node_id = *counter;
+
+                egui::CollapsingHeader::new(
+                    egui::RichText::new(format!("⚙️  {} ({})", op, op_name))
+                        .color(OPERATOR_COLOR)
+                        .strong()
+                        .size(16.0),
+                )
+                .id_salt(format!("{}_binop_{}_{}", id_prefix, op, node_id))
+                .default_open(true)
+                .show(ui, |ui| {
+                    ui.indent(format!("{}_left_{}", id_prefix, node_id), |ui| {
+                        ui.horizontal(|ui| {
+                            ui.label(
+                                egui::RichText::new("Left:")
+                                    .color(egui::Color32::DARK_GRAY)
+                                    .strong(),
+                            );
+                        });
+                        self.render_ast_node(ui, left, &format!("{}_l", id_prefix), counter);
+                    });
+
+                    ui.add_space(5.0);
+
+                    ui.indent(format!("{}_right_{}", id_prefix, node_id), |ui| {
+                        ui.horizontal(|ui| {
+                            ui.label(
+                                egui::RichText::new("Right:")
+                                    .color(egui::Color32::DARK_GRAY)
+                                    .strong(),
+                            );
+                        });
+                        self.render_ast_node(ui, right, &format!("{}_r", id_prefix), counter);
+                    });
+                });
+            }
+            ASTNode::UnaryOp { op, operand } => {
+                let op_name = match op.as_str() {
+                    "√" => "Square Root",
+                    _ => "Unary Operation",
+                };
+
+                *counter += 1;
+                let node_id = *counter;
+
+                egui::CollapsingHeader::new(
+                    egui::RichText::new(format!("🔧  {} ({})", op, op_name))
+                        .color(FUNCTION_COLOR)
+                        .strong()
+                        .size(16.0),
+                )
+                .id_salt(format!("{}_unop_{}_{}", id_prefix, op, node_id))
+                .default_open(true)
+                .show(ui, |ui| {
+                    ui.indent(format!("{}_operand_{}", id_prefix, node_id), |ui| {
+                        ui.horizontal(|ui| {
+                            ui.label(
+                                egui::RichText::new("Operand:")
+                                    .color(egui::Color32::DARK_GRAY)
+                                    .strong(),
+                            );
+                        });
+                        self.render_ast_node(ui, operand, &format!("{}_op", id_prefix), counter);
+                    });
+                });
+            }
+        }
+    }
+
     fn render_ast(&self, ui: &mut egui::Ui, ast: &ASTNode) {
         ui.group(|ui| {
             ui.heading("🌳 Abstract Syntax Tree");
             ui.add_space(5.0);
 
-            let tree_lines = ast.to_tree_lines("", true);
-
             egui::ScrollArea::vertical()
                 .id_salt("ast_scroll")
                 .max_height(AST_SCROLL_HEIGHT)
                 .show(ui, |ui| {
-                    for line in tree_lines {
-                        ui.label(egui::RichText::new(line).monospace());
-                    }
+                    ui.style_mut().spacing.indent = 20.0;
+                    ui.style_mut().spacing.item_spacing.y = 8.0;
+
+                    ui.add_space(5.0);
+                    let mut counter = 0;
+                    self.render_ast_node(ui, ast, "root", &mut counter);
+                    ui.add_space(5.0);
                 });
         });
 
