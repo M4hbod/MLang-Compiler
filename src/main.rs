@@ -9,7 +9,6 @@ mod ui;
 use eframe::egui;
 use ui::ExpressionParserApp;
 
-// Window Constants
 const WINDOW_WIDTH: f32 = 900.0;
 const WINDOW_HEIGHT: f32 = 700.0;
 const MIN_WINDOW_WIDTH: f32 = 600.0;

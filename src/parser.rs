@@ -140,6 +140,10 @@ pub struct ParseResult {
     pub tokens: Vec<Token>,
     pub ast: ASTNode,
     pub identifier_table: Vec<(String, usize)>,
+    pub semantic_warnings: Vec<String>,
+    pub three_address_code: Vec<String>,
+    pub optimized_ast: ASTNode,
+    pub optimized_three_address_code: Vec<String>,
 }
 
 impl ParseResult {
@@ -155,10 +159,29 @@ impl ParseResult {
         let mut parser = Parser::new(tokens.clone());
         let ast = parser.parse()?;
 
+        // Semantic analysis
+        let semantic_warnings = ast.semantic_check();
+
+        // Intermediate code generation
+        let mut temp_counter = 1;
+        let (three_address_code, _) = ast.to_three_address_code(&mut temp_counter);
+
+        // Code optimization
+        let optimized_ast = ast.optimize();
+
+        // Generate optimized three-address code
+        let mut temp_counter = 1;
+        let (optimized_three_address_code, _) =
+            optimized_ast.to_three_address_code(&mut temp_counter);
+
         Ok(Self {
             tokens,
             ast,
             identifier_table,
+            semantic_warnings,
+            three_address_code,
+            optimized_ast,
+            optimized_three_address_code,
         })
     }
 }
