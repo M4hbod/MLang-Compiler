@@ -6,7 +6,7 @@ use eframe::egui;
 // UI Constants
 pub const TOKENS_SCROLL_HEIGHT: f32 = 150.0;
 pub const AST_SCROLL_HEIGHT: f32 = 350.0;
-pub const CODE_SCROLL_HEIGHT: f32 = 200.0;
+pub const CODE_SCROLL_HEIGHT: f32 = 300.0;
 pub const TOKEN_BG_COLOR: egui::Color32 = egui::Color32::from_rgb(220, 230, 255);
 pub const TOKEN_TEXT_COLOR: egui::Color32 = egui::Color32::from_rgb(0, 60, 150);
 pub const IDENTIFIER_COLOR: egui::Color32 = egui::Color32::from_rgb(0, 100, 200);
@@ -82,7 +82,7 @@ impl ExpressionParserApp {
 
             let examples = [
                 "A = B + C",
-                "sqrt(16) + 2 * 3",
+                "A = sqrt(B-(C-D)^E) - 10",
                 "a + b * c",
                 "x^2 + 2*x + 1",
                 "5 + 3 * 0",
@@ -108,12 +108,6 @@ impl ExpressionParserApp {
 
     fn render_phase_header(&self, ui: &mut egui::Ui, phase_num: usize, title: &str) {
         ui.horizontal(|ui| {
-            ui.label(
-                egui::RichText::new(format!("Phase {}", phase_num))
-                    .size(18.0)
-                    .color(PHASE_HEADER_COLOR)
-                    .strong(),
-            );
             ui.label(egui::RichText::new(title).size(18.0).strong());
         });
         ui.add_space(5.0);
@@ -291,31 +285,6 @@ impl ExpressionParserApp {
                 ui.add_space(5.0);
             }
 
-            ui.columns(2, |columns| {
-                // Original
-                columns[0].group(|ui| {
-                    ui.label(egui::RichText::new("Before Optimization:").strong());
-                    ui.add_space(3.0);
-                    ui.label(
-                        egui::RichText::new(format!("AST: {}", result.ast))
-                            .monospace()
-                            .small(),
-                    );
-                });
-
-                // Optimized
-                columns[1].group(|ui| {
-                    ui.label(egui::RichText::new("After Optimization:").strong());
-                    ui.add_space(3.0);
-                    ui.label(
-                        egui::RichText::new(format!("AST: {}", result.optimized_ast))
-                            .monospace()
-                            .small()
-                            .color(SUCCESS_COLOR),
-                    );
-                });
-            });
-
             ui.add_space(8.0);
             ui.label(egui::RichText::new("Optimized Three-Address Code:").strong());
             ui.add_space(3.0);
@@ -396,19 +365,14 @@ impl ExpressionParserApp {
         ui.separator();
         ui.add_space(15.0);
 
-        // Phase 1: Lexical Analysis
         self.render_phase1_lexical(ui, result);
 
-        // Phase 2: Syntax Analysis
         self.render_phase2_syntax(ui, &result.ast);
 
-        // Phase 3: Semantic Analysis
         self.render_phase3_semantic(ui, &result.semantic_warnings);
 
-        // Phase 4: Intermediate Code Generation
         self.render_phase4_intermediate(ui, &result.three_address_code);
 
-        // Phase 5: Code Optimization
         self.render_phase5_optimization(ui, result);
 
         // Final Result

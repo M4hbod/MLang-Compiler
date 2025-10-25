@@ -171,8 +171,11 @@ impl ParseResult {
 
         // Generate optimized three-address code
         let mut temp_counter = 1;
-        let (optimized_three_address_code, _) =
+        let (mut optimized_three_address_code, _) =
             optimized_ast.to_three_address_code(&mut temp_counter);
+
+        // Apply peephole optimization to eliminate unnecessary temporaries
+        optimized_three_address_code = Self::peephole_optimize(optimized_three_address_code);
 
         Ok(Self {
             tokens,
@@ -183,5 +186,97 @@ impl ParseResult {
             optimized_ast,
             optimized_three_address_code,
         })
+    }
+
+    /// Peephole optimization: eliminate unnecessary temporary variables
+    /// Transforms patterns like:
+    ///   t5 = t4 - 10
+    ///   id1 = t5
+    /// Into:
+    ///   id1 = t4 - 10
+    fn peephole_optimize(code: Vec<String>) -> Vec<String> {
+        use std::collections::HashMap;
+
+        let mut temp_definitions: HashMap<String, String> = HashMap::new();
+        let mut temp_usage_count: HashMap<String, usize> = HashMap::new();
+        let mut skip_indices = std::collections::HashSet::new();
+
+        // First pass: count how many times each temp is used and store definitions
+        for line in &code {
+            let parts: Vec<&str> = line.split_whitespace().collect();
+            if parts.len() >= 3 && parts[1] == "=" {
+                let lhs = parts[0];
+                let rhs = parts[2..].join(" ");
+
+                // Store temp definitions
+                if lhs.starts_with('t') && lhs.chars().skip(1).all(|c| c.is_numeric()) {
+                    temp_definitions.insert(lhs.to_string(), rhs.clone());
+                }
+
+                // Count usages of temps on the right side
+                for part in &parts[2..] {
+                    let clean_part = part.trim_end_matches(|c: char| !c.is_alphanumeric());
+                    if clean_part.starts_with('t')
+                        && clean_part.chars().skip(1).all(|c| c.is_numeric())
+                    {
+                        *temp_usage_count.entry(clean_part.to_string()).or_insert(0) += 1;
+                    }
+                }
+            }
+        }
+
+        // Second pass: check for pattern "temp = expr; var = temp" and mark temp line for removal
+        for i in 0..code.len().saturating_sub(1) {
+            let curr_parts: Vec<&str> = code[i].split_whitespace().collect();
+            let next_parts: Vec<&str> = code[i + 1].split_whitespace().collect();
+
+            if curr_parts.len() >= 3
+                && curr_parts[1] == "="
+                && next_parts.len() >= 3
+                && next_parts[1] == "="
+            {
+                let curr_lhs = curr_parts[0];
+                let next_rhs = next_parts[2..].join(" ");
+
+                // Check if current assigns to a temp, and next line uses only that temp
+                if curr_lhs.starts_with('t')
+                    && curr_lhs.chars().skip(1).all(|c| c.is_numeric())
+                    && next_rhs == curr_lhs
+                    && temp_usage_count.get(curr_lhs).copied().unwrap_or(0) == 1
+                {
+                    // Mark the temp assignment for skipping
+                    skip_indices.insert(i);
+                }
+            }
+        }
+
+        // Third pass: build optimized code
+        let mut optimized = Vec::new();
+        for (i, line) in code.iter().enumerate() {
+            if skip_indices.contains(&i) {
+                continue;
+            }
+
+            let parts: Vec<&str> = line.split_whitespace().collect();
+            if parts.len() >= 3 && parts[1] == "=" {
+                let lhs = parts[0];
+                let rhs = parts[2..].join(" ");
+
+                // If rhs is a single temp that was used only once, substitute its definition
+                if rhs.starts_with('t')
+                    && rhs.chars().all(|c| c.is_alphanumeric())
+                    && temp_definitions.contains_key(&rhs)
+                    && temp_usage_count.get(&rhs).copied().unwrap_or(0) == 1
+                {
+                    let definition = temp_definitions.get(&rhs).unwrap();
+                    optimized.push(format!("{} = {}", lhs, definition));
+                    continue;
+                }
+            }
+
+            optimized.push(line.clone());
+        }
+
+        optimized
     }
 }
